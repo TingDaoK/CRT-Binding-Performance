@@ -92,14 +92,7 @@ sudo perf record -F 99 --call-graph dwarf -g \
 
 ![C Flamegraph](c-image.png)
 
-**Interactive Flamegraph**: [View full SVG flamegraph](c-benchmark.svg) for detailed analysis
-
-<details>
-<summary>Embedded Interactive Flamegraph</summary>
-
-![C Interactive Flamegraph](c-benchmark.svg)
-
-</details>
+**Interactive Flamegraph**: [View full html flamegraph](c-benchmark.html) for detailed analysis
 
 ---
 
@@ -132,14 +125,7 @@ sudo perf record -F 99 -g \
 
 ![Python Flamegraph](python-image.png)
 
-**Interactive Flamegraph**: [View full SVG flamegraph](python-benchmark.svg) for detailed analysis
-
-<details>
-<summary>Embedded Interactive Flamegraph</summary>
-
-![Python Interactive Flamegraph](python-benchmark.svg)
-
-</details>
+**Interactive Flamegraph**: [View full html flamegraph](python-benchmark.html) for detailed analysis
 
 ---
 
@@ -171,14 +157,7 @@ sudo perf record -F 99 --call-graph dwarf -g \
 
 ![Java Flamegraph](java-image.png)
 
-**Interactive Flamegraph**: [View full SVG flamegraph](java-benchmark.svg) for detailed analysis
-
-<details>
-<summary>Embedded Interactive Flamegraph</summary>
-
-![Java Interactive Flamegraph](java-benchmark.svg)
-
-</details>
+**Interactive Flamegraph**: [View full html flamegraph](java-benchmark.html) for detailed analysis
 
 ---
 
@@ -216,7 +195,7 @@ To validate that the overhead is specifically from data marshalling (not from th
 
 **Critical Insight**: When data doesn't need to be delivered to the application (disk writes), Java and Python perform at C-level speeds. This proves the performance gap is mostly due to FFI data marshalling overhead, not the binding implementations themselves.
 
-![Java Disk Flamegraph](disk/java-benchmark.svg)
+![Java Disk Flamegraph](disk/java-benchmark.html)
 
 ---
 
