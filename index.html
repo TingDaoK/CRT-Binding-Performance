@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRT Binding Performance — Flamegraph Index</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      color: #555;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ── section headers ─────────────────────────────────── */
+    h2 {
+      font-size: 1.15rem;
+      color: #333;
+      margin: 2rem 0 0.75rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 2px solid #dde1e7;
+    }
+
+    /* ── card grid ───────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      transition: box-shadow 0.15s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    /* language badge */
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-radius: 4px;
+      padding: 2px 8px;
+      align-self: flex-start;
+    }
+
+    .badge-c       { background: #dbeafe; color: #1d4ed8; }
+    .badge-java    { background: #fef3c7; color: #92400e; }
+    .badge-python  { background: #dcfce7; color: #166534; }
+    .badge-control { background: #f3f4f6; color: #374151; }
+
+    /* stats row */
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .stat {
+      font-size: 0.82rem;
+      background: #f8f9fb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 3px 9px;
+      color: #444;
+    }
+
+    .stat strong { color: #111; }
+
+    /* description */
+    .desc {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* link */
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+      margin-top: auto;
+    }
+
+    .card-link:hover { text-decoration: underline; }
+    .card-link::after { content: "↗"; font-size: 0.8em; }
+
+    /* ── performance table ───────────────────────────────── */
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 1rem;
+    }
+
+    .perf-table th, .perf-table td {
+      text-align: left;
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .perf-table th {
+      background: #f1f5f9;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .perf-table tr:last-child td { border-bottom: none; }
+    .perf-table tr:hover td { background: #fafbfc; }
+
+    .bar-cell { width: 160px; }
+
+    .bar-wrap {
+      background: #e5e7eb;
+      border-radius: 3px;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .bar { height: 100%; border-radius: 3px; }
+    .bar-c      { background: #3b82f6; }
+    .bar-java   { background: #f59e0b; }
+    .bar-python { background: #22c55e; }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>CRT Binding Performance — Flamegraph Index</h1>
+<p class="subtitle">
+  Interactive CPU profiles captured while downloading a 30 GiB file from S3.
+  Each flamegraph was recorded with <code>perf</code> at 99 Hz.
+  Click any card to open the full interactive flamegraph.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════════
+     QUICK SUMMARY
+════════════════════════════════════════════════════════════ -->
+<h2>Performance Summary — Download to RAM (30 GiB)</h2>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.6rem">
+  Event-delivery overhead measures time spent in
+  <code>__s3_meta_request_event_delivery_task</code>  — the FFI crossing point.
+  C is baseline (100 %).
+</p>
+<table class="perf-table">
+  <thead>
+    <tr>
+      <th>Language</th>
+      <th>Throughput</th>
+      <th>Duration</th>
+      <th>Event Delivery %</th>
+      <th>vs C</th>
+      <th class="bar-cell">Relative Throughput</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C</strong> <span style="font-size:0.78rem;color:#888">(baseline)</span></td>
+      <td>69.4 Gb/s</td>
+      <td>3.7 s</td>
+      <td>0.04 %</td>
+      <td>100 %</td>
+      <td class="bar-cell">
+        <div class="bar-wrap"><div class="bar bar-c" style="width:100%"></div></div>
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Python</strong></td>
+      <td>33.5 Gb/s</td>
+      <td>7.7 s</td>
+      <td>6.77 %&nbsp;<em style="color:#dc2626;font-size:0.78rem">(169 ×↑)</em></td>
+      <td>48 %</td>
+      <td class="bar-cell">
+        <div class="bar-wrap"><div class="bar bar-python" style="width:48%"></div></div>
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Java</strong></td>
+      <td>15.7 Gb/s</td>
+      <td>16.4 s</td>
+      <td>12.32 %&nbsp;<em style="color:#dc2626;font-size:0.78rem">(308 ×↑)</em></td>
+      <td>23 %</td>
+      <td class="bar-cell">
+        <div class="bar-wrap"><div class="bar bar-java" style="width:23%"></div></div>
+      </td>
+    </tr>
+    <tr style="background:#f0fdf4">
+      <td><strong>Java</strong> <span style="font-size:0.78rem;color:#16a34a">DirectByteBuffer ✨</span></td>
+      <td>65.0 Gb/s</td>
+      <td>3.96 s</td>
+      <td>0.21 %&nbsp;<em style="color:#16a34a;font-size:0.78rem">(↓ from 12.32 %)</em></td>
+      <td><strong style="color:#16a34a">93.7 %</strong></td>
+      <td class="bar-cell">
+        <div class="bar-wrap"><div class="bar bar-java" style="width:93.7%"></div></div>
+      </td>
+    </tr>
+    <tr style="background:#f0fdf4">
+      <td><strong>Python</strong> <span style="font-size:0.78rem;color:#16a34a">memoryview ✨</span></td>
+      <td>60.6 Gb/s</td>
+      <td>4.25 s</td>
+      <td>3.16 %&nbsp;<em style="color:#16a34a;font-size:0.78rem">(↓ from 6.77 %)</em></td>
+      <td><strong style="color:#16a34a">87.3 %</strong></td>
+      <td class="bar-cell">
+        <div class="bar-wrap"><div class="bar bar-python" style="width:87.3%"></div></div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1 — S3 → RAM FLAMEGRAPHS
+════════════════════════════════════════════════════════════ -->
+<h2>Experiment 1 — S3 Download to RAM (30 GiB)</h2>
+<div class="grid">
+
+  <!-- C baseline -->
+  <div class="card">
+    <span class="badge badge-c">C — Baseline</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>69.4 Gb/s</strong></span>
+      <span class="stat">⏱ 3.7 s</span>
+      <span class="stat">Event delivery: <strong>0.04 %</strong></span>
+      <span class="stat">Peak RSS: 12,214 MiB</span>
+    </div>
+    <p class="desc">
+      Native C implementation with zero FFI overhead.
+      The tiny event-delivery slice (0.04 %) is purely memory management
+      (<code>aws_s3_request_release</code>), not marshalling.
+      Serves as the performance ceiling for all other bindings.
+    </p>
+    <a class="card-link" href="c-benchmark.html" target="_blank">Open C flamegraph</a>
+  </div>
+
+  <!-- Python -->
+  <div class="card">
+    <span class="badge badge-python">Python</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>33.5 Gb/s</strong></span>
+      <span class="stat">⏱ 7.7 s (2.1× slower)</span>
+      <span class="stat">Event delivery: <strong>6.77 %</strong></span>
+    </div>
+    <p class="desc">
+      FFI overhead jumps 169× versus C.  Nearly all event-delivery time
+      (99.4 %) is <code>PyBytes_FromStringAndSize</code> — allocating Python
+      bytes objects and copying each C buffer into Python-managed memory.
+      GIL contention and reference counting add further pressure.
+    </p>
+    <a class="card-link" href="python-benchmark.html" target="_blank">Open Python flamegraph</a>
+  </div>
+
+  <!-- Java -->
+  <div class="card">
+    <span class="badge badge-java">Java</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>15.7 Gb/s</strong></span>
+      <span class="stat">⏱ 16.4 s (4.4× slower)</span>
+      <span class="stat">Event delivery: <strong>12.32 %</strong></span>
+    </div>
+    <p class="desc">
+      FFI overhead jumps 308× versus C.  The binding creates a Java
+      <strong>byte array</strong> (<code>byte[]</code>) for each C buffer,
+      copying data across the JNI boundary into JVM-managed heap memory.
+      JNI call overhead and GC tracking compound the cost; 99.6 % of
+      event-delivery time is pure marshalling.
+      <em>Note: switching to <code>DirectByteBuffer</code> (zero-copy, analogous
+      to Python's <code>memoryview</code>) brings Java throughput back to C
+      levels.</em>
+    </p>
+    <a class="card-link" href="java-benchmark.html" target="_blank">Open Java flamegraph</a>
+  </div>
+
+</div><!-- .grid -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1b — OPTIMIZED RAM VARIANTS
+════════════════════════════════════════════════════════════ -->
+<h2>Experiment 1b — Optimized Bindings: Zero-Copy RAM Download (30 GiB)</h2>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  Both Java and Python expose a zero-copy path that hands the application a
+  <em>view</em> into the C-owned buffer instead of copying the data.
+  These tests confirm that <strong>virtually all of the RAM-download overhead
+  is avoidable</strong> — the FFI cost drops to near-C levels the moment the
+  copy is eliminated.
+</p>
+<table class="perf-table" style="margin-top:0;margin-bottom:1.1rem">
+  <thead>
+    <tr>
+      <th>Variant</th>
+      <th>Throughput</th>
+      <th>Duration</th>
+      <th>vs C baseline</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C</strong> <span style="font-size:0.78rem;color:#888">(baseline)</span></td>
+      <td>69.4 Gb/s</td><td>3.7 s</td><td>100 %</td>
+    </tr>
+    <tr>
+      <td><strong>Java — DirectByteBuffer</strong></td>
+      <td>65.0 Gb/s</td><td>3.96 s</td>
+      <td><span style="color:#16a34a;font-weight:600">93.7 % ↑ from 23 %</span></td>
+    </tr>
+    <tr>
+      <td><strong>Python — memoryview</strong></td>
+      <td>60.6 Gb/s</td><td>4.25 s</td>
+      <td><span style="color:#16a34a;font-weight:600">87.3 % ↑ from 48 %</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="grid">
+
+  <div class="card">
+    <span class="badge badge-java">Java — DirectByteBuffer</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>65.0 Gb/s</strong></span>
+      <span class="stat">⏱ 3.96 s</span>
+      <span class="stat">vs C: <strong style="color:#16a34a">93.7 %</strong></span>
+    </div>
+    <p class="desc">
+      Java binding updated to return a <code>DirectByteBuffer</code> that
+      wraps the C-owned buffer directly — no heap copy across the JNI boundary.
+      Throughput jumps from 15.7 Gb/s to <strong>65.0 Gb/s</strong> (4.1×
+      improvement), nearly matching the native C baseline.
+      The residual gap (~7 %) is attributable to JNI framing and JVM object
+      creation, not data copying.
+    </p>
+    <a class="card-link" href="direct-byte-buf.html" target="_blank">Open DirectByteBuffer flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-python">Python — memoryview</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>60.6 Gb/s</strong></span>
+      <span class="stat">⏱ 4.25 s</span>
+      <span class="stat">vs C: <strong style="color:#16a34a">87.3 %</strong></span>
+    </div>
+    <p class="desc">
+      Python binding updated to expose a <code>memoryview</code> into the
+      C-owned buffer instead of copying into a <code>bytes</code> object.
+      Throughput jumps from 33.5 Gb/s to <strong>60.6 Gb/s</strong> (1.8×
+      improvement).  The remaining gap vs C is primarily GIL acquisition
+      and CPython interpreter overhead — not data copying.
+      <em>Caveat: memoryview is zero-copy only while the caller holds the view;
+      any downstream processing that materialises the data into Python objects
+      will reintroduce the copy.</em>
+    </p>
+    <a class="card-link" href="python-memory-view.html" target="_blank">Open memoryview flamegraph</a>
+  </div>
+
+</div><!-- .grid optimized -->
+
+<!-- ── Visual comparison ── -->
+<h2 style="margin-top:2rem">Visual Comparison — Event Delivery Task</h2>
+<p style="font-size:0.88rem;color:#555;margin-bottom:1rem">
+  Zoomed snapshots of the <code>s_s3_meta_request_event_delivery_task</code>
+  frame from each flamegraph.  The width of the bar is directly proportional
+  to CPU time — notice how it almost disappears with the zero-copy variants.
+</p>
+
+<style>
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .compare-grid figure {
+    margin: 0;
+    background: #fff;
+    border: 1px solid #e0e4ea;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .compare-grid figure img {
+    width: 100%;
+    display: block;
+  }
+  .compare-grid figcaption {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.82rem;
+    color: #555;
+    border-top: 1px solid #e0e4ea;
+  }
+  .compare-grid figcaption strong { color: #111; }
+  .compare-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #333;
+    margin: 1.2rem 0 0.4rem;
+  }
+  @media (max-width: 600px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<p class="compare-label">Java: <code>byte[]</code> copy (original) vs <code>DirectByteBuffer</code> (zero-copy)</p>
+<div class="compare-grid">
+  <figure>
+    <img src="java-image.png" alt="Java byte[] event delivery flamegraph" />
+    <figcaption>
+      <strong>Java — byte[] (original)</strong><br>
+      Event delivery: 12.32 % · Throughput: 15.7 Gb/s<br>
+      The <code>s_s3_meta_request_event_delivery_task</code> frame is
+      wide — nearly all of it is spent creating and copying <code>byte[]</code>
+      objects across the JNI boundary.
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="direct-java-image.png" alt="Java DirectByteBuffer event delivery flamegraph" />
+    <figcaption>
+      <strong>Java — DirectByteBuffer ✨ (zero-copy)</strong><br>
+      Event delivery: 0.21 % · Throughput: 65.0 Gb/s<br>
+      The same frame shrinks to a thin sliver — the copy is gone and only
+      JNI framing + object-header overhead remains.
+    </figcaption>
+  </figure>
+</div>
+
+<p class="compare-label">Python: <code>bytes</code> copy (original) vs <code>memoryview</code> (zero-copy)</p>
+<div class="compare-grid">
+  <figure>
+    <img src="python-image.png" alt="Python bytes event delivery flamegraph" />
+    <figcaption>
+      <strong>Python — bytes (original)</strong><br>
+      Event delivery: 6.77 % · Throughput: 33.5 Gb/s<br>
+      <code>PyBytes_FromStringAndSize</code> dominates — each C buffer is
+      copied into a new Python <code>bytes</code> object on every callback.
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="python-memory-view-image.png" alt="Python memoryview event delivery flamegraph" />
+    <figcaption>
+      <strong>Python — memoryview ✨ (zero-copy)</strong><br>
+      Event delivery: 3.16 % · Throughput: 60.6 Gb/s<br>
+      The copy call disappears; remaining overhead is GIL acquisition and
+      CPython interpreter bookkeeping around the view creation.
+    </figcaption>
+  </figure>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2 — CONTROL: S3 → DISK (5 GiB)
+════════════════════════════════════════════════════════════ -->
+<h2>Experiment 2 — Control: S3 Download to Disk (5 GiB)</h2>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  Writing to disk bypasses the application-layer callback entirely; the C runtime
+  handles I/O without crossing the FFI boundary.  All three languages converge to
+  near-identical throughput, <strong>confirming that RAM-download overhead is
+  caused solely by FFI data marshalling</strong>, not by binding infrastructure.
+</p>
+<table class="perf-table" style="margin-top:0;margin-bottom:1.1rem">
+  <thead>
+    <tr><th>Language</th><th>Throughput</th><th>Duration</th><th>vs C (disk)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>C</strong></td><td>14.08 Gb/s</td><td>3.05 s</td><td>100 % (baseline)</td></tr>
+    <tr><td><strong>Java</strong></td><td>14.10 Gb/s</td><td>3.05 s</td><td>100.1 %</td></tr>
+    <tr><td><strong>Python</strong></td><td>13.05 Gb/s</td><td>3.29 s</td><td>92.7 %</td></tr>
+  </tbody>
+</table>
+
+<div class="grid">
+
+  <div class="card">
+    <span class="badge badge-c">C — Disk</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>14.08 Gb/s</strong></span>
+      <span class="stat">⏱ 3.05 s</span>
+    </div>
+    <p class="desc">
+      C writing to disk — sets the disk-I/O bound baseline.
+      No application callback invoked; all throughput comes from
+      the CRT's internal write path.
+    </p>
+    <a class="card-link" href="disk/c-benchmark.html" target="_blank">Open C disk flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-python">Python — Disk</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>13.05 Gb/s</strong></span>
+      <span class="stat">⏱ 3.29 s</span>
+      <span class="stat">vs C disk: 92.7 %</span>
+    </div>
+    <p class="desc">
+      Python writing to disk achieves 93 % of C performance — a dramatic
+      contrast to the 48 % seen in the RAM-download test.
+      The 7 % gap is attributable to Python interpreter startup cost
+      and minor scheduling overhead, <em>not</em> data marshalling.
+    </p>
+    <a class="card-link" href="disk/python-benchmark.html" target="_blank">Open Python disk flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-java">Java — Disk</span>
+    <div class="stats">
+      <span class="stat">🚀 <strong>14.10 Gb/s</strong></span>
+      <span class="stat">⏱ 3.05 s</span>
+      <span class="stat">vs C disk: 100.1 %</span>
+    </div>
+    <p class="desc">
+      Java writing to disk matches C throughput exactly.
+      In the RAM-download test Java reached only 23 % of C — meaning
+      <strong>77 % of Java's overhead is purely FFI marshalling</strong>,
+      eliminated the moment no callback crosses the language boundary.
+    </p>
+    <a class="card-link" href="disk/java-benchmark.html" target="_blank">Open Java disk flamegraph</a>
+  </div>
+
+</div><!-- .grid -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     HOW TO READ
+════════════════════════════════════════════════════════════ -->
+<h2>How to Read These Flamegraphs</h2>
+<p style="font-size:0.88rem;color:#555;line-height:1.6;max-width:780px">
+  Each flamegraph was generated from <code>perf record -F 99 --call-graph dwarf</code>
+  and converted to interactive SVG.  The <strong>x-axis width</strong> is proportional
+  to CPU time; <strong>y-axis height</strong> represents call-stack depth.
+  Colors are arbitrary (no performance meaning).
+  The critical region to compare across profiles is
+  <code>__s3_meta_request_event_delivery_task</code>: it is a thin sliver in C
+  (0.04 %) but dominates the Java profile (12.32 %) and is clearly visible in Python
+  (6.77 %).  Click a frame to zoom; press <kbd>Ctrl</kbd>+<kbd>F</kbd> to search.
+</p>
+
+<footer>
+  CRT Binding Performance Analysis · profiles collected on EC2 (us-west-2) ·
+  workload: S3 download, bucket <code>aws-c-s3-test-bucket-269381--usw2-az1--x-s3</code>
+</footer>
+
+</body>
+</html>
