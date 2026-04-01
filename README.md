@@ -45,7 +45,7 @@ sudo perf record -F 99 --call-graph dwarf -g \
 
 The event delivery task is a thin sliver. Most of the 0.04% is `aws_s3_request_release` (cleanup work), not any kind of data marshalling. This is the performance ceiling.
 
-![C Flamegraph](c-image.png) · [Interactive flamegraph index](index.html)
+![C Flamegraph](c-image.png) · [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 ---
 
@@ -63,7 +63,7 @@ sudo perf record -F 99 --call-graph dwarf -g \
 
 The flamegraph shows a wide `s_s3_meta_request_event_delivery_task` bar dominated by JNI array creation and memcpy.
 
-![Java Flamegraph](java-image.png) · [Interactive flamegraph index](index.html)
+![Java Flamegraph](java-image.png) · [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 #### Scaling note
 
@@ -85,7 +85,7 @@ sudo perf record -F 99 -g \
 
 The flamegraph shows the event delivery bar dominated by CPython object allocation and the data copy into a new `bytes` object.
 
-![Python Flamegraph](python-image.png) · [Interactive flamegraph index](index.html)
+![Python Flamegraph](python-image.png) · [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 ---
 
@@ -104,7 +104,7 @@ perf record -F 99 -g java -jar s3-benchrunner-java.jar crt-java \
 
 The event delivery bar shrinks to nearly C-level. The remaining ~6% throughput gap vs C is JNI framing and JVM object-header overhead, not data copying.
 
-![Java DirectByteBuffer Flamegraph](direct-java-image.png) · [Interactive flamegraph index](index.html)
+![Java DirectByteBuffer Flamegraph](direct-java-image.png) · [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 ---
 
@@ -125,7 +125,7 @@ The event delivery bar shrinks significantly. The remaining overhead (~13% gap v
 
 **Caveat**: `memoryview` is zero-copy only while the caller holds the view and does not materialise the data into Python objects. Any downstream operation that requires a `bytes` object (e.g., writing to a pipe, passing to most Python libraries) reintroduces the copy. See [aws-cli#8288](https://github.com/aws/aws-cli/issues/8288#issuecomment-1816886132) for a concrete example.
 
-![Python memoryview Flamegraph](python-memory-view-image.png) · [Interactive flamegraph index](index.html)
+![Python memoryview Flamegraph](python-memory-view-image.png) · [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 ---
 
@@ -139,7 +139,7 @@ Java:   14.10 Gb/s  (3.05 s)  — 100.1% of C
 Python: 13.05 Gb/s  (3.29 s)  — 92.7% of C
 ```
 
-All three languages converge to within 8% of each other. The binding overhead seen in Experiments 2 and 3 is entirely absent. [Interactive flamegraph index](index.html)
+All three languages converge to within 8% of each other. The binding overhead seen in Experiments 2 and 3 is entirely absent. [Interactive flamegraph index](https://tingdaok.github.io/CRT-Binding-Performance/)
 
 ## Results Summary
 
