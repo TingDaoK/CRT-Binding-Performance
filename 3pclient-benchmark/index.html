@@ -20,18 +20,11 @@
       margin-bottom: 1.2rem;
     }
 
-    .breadcrumb a {
-      color: #2563eb;
-      text-decoration: none;
-    }
-
+    .breadcrumb a { color: #2563eb; text-decoration: none; }
     .breadcrumb a:hover { text-decoration: underline; }
     .breadcrumb span { color: #aaa; margin: 0 0.4rem; }
 
-    h1 {
-      font-size: 1.75rem;
-      margin-bottom: 0.4rem;
-    }
+    h1 { font-size: 1.75rem; margin-bottom: 0.4rem; }
 
     .subtitle {
       color: #555;
@@ -42,7 +35,7 @@
     h2 {
       font-size: 1.15rem;
       color: #333;
-      margin: 2rem 0 0.75rem;
+      margin: 2.5rem 0 0.75rem;
       padding-bottom: 0.3rem;
       border-bottom: 2px solid #dde1e7;
     }
@@ -51,6 +44,20 @@
       font-size: 1rem;
       color: #444;
       margin: 1.5rem 0 0.6rem;
+    }
+
+    .step-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin-right: 0.5rem;
+      vertical-align: middle;
     }
 
     /* ── card grid ───────────────────────────────────────── */
@@ -71,9 +78,7 @@
       transition: box-shadow 0.15s;
     }
 
-    .card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    }
+    .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
 
     .badge {
       display: inline-block;
@@ -91,11 +96,7 @@
     .badge-cli        { background: #dbeafe; color: #1d4ed8; }
     .badge-freethread { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
+    .stats { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 
     .stat {
       font-size: 0.82rem;
@@ -108,11 +109,7 @@
 
     .stat strong { color: #111; }
 
-    .desc {
-      font-size: 0.88rem;
-      color: #555;
-      line-height: 1.5;
-    }
+    .desc { font-size: 0.88rem; color: #555; line-height: 1.5; }
 
     .card-link {
       display: inline-flex;
@@ -127,13 +124,6 @@
 
     .card-link:hover { text-decoration: underline; }
     .card-link::after { content: "↗"; font-size: 0.8em; }
-
-    .card-links {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      margin-top: auto;
-    }
 
     /* ── performance table ───────────────────────────────── */
     .perf-table {
@@ -159,6 +149,7 @@
     .perf-table tr:hover td { background: #fafbfc; }
     .perf-table .highlight-row td { background: #f0fdf4; }
     .perf-table .dim-row td { color: #888; }
+    .perf-table .warn-row td { background: #fffbeb; }
 
     .bar-cell { width: 130px; }
 
@@ -176,6 +167,7 @@
     .bar-cli        { background: #6b7280; }
     .bar-java       { background: #f59e0b; }
     .bar-freethread { background: #22c55e; }
+    .bar-rust       { background: #ef4444; }
 
     /* callout box */
     .callout {
@@ -199,30 +191,55 @@
       border-left-color: #22c55e;
     }
 
-    /* analogy table */
-    .analogy-table {
+    .callout.danger {
+      background: #fef2f2;
+      border-left-color: #ef4444;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    /* py-spy compare grid */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .compare-grid figure {
+      margin: 0;
+      background: #fff;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .compare-grid figure img { width: 100%; display: block; }
+
+    .compare-grid figcaption {
+      padding: 0.6rem 0.9rem;
+      font-size: 0.82rem;
+      color: #555;
+      border-top: 1px solid #e0e4ea;
+    }
+
+    .compare-grid figcaption strong { color: #111; }
+
+    @media (max-width: 640px) {
+      .compare-grid, .two-col { grid-template-columns: 1fr; }
+    }
+
+    .img-full {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin: 0.75rem 0 1rem;
-    }
-
-    .analogy-table th, .analogy-table td {
-      padding: 0.5rem 0.9rem;
-      border: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    .analogy-table th {
-      background: #f1f5f9;
-      font-weight: 600;
-    }
-
-    .analogy-table .match-cell {
-      color: #16a34a;
-      font-weight: 600;
-      text-align: center;
-      font-size: 1rem;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 1rem;
     }
 
     footer {
@@ -244,22 +261,20 @@
 
 <h1>3rd-Party Client Benchmark — Flamegraph Index</h1>
 <p class="subtitle">
-  Throughput comparison of several S3 clients, with deep-dive profiling into
-  why the CLI tools are slower than the <code>crt-python</code> SDK library.
-  Workload: <strong>10,000 × 1 MiB</strong> files (~10 GiB total), upload &amp; download.
+  Throughput comparison of several S3 clients and a step-by-step flame graph analysis of
+  why the AWS CLI is slower than competing tools — and what it takes to close the gap.
+  Workload: <strong>10,000 × 1 MiB</strong> files (~10 GiB total). Instance: <strong>c7gn.16xlarge</strong> (ARM) for throughput numbers;
+  <strong>c5n.18xlarge</strong> (x86) for profiling runs.
 </p>
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     SECTION 1 — OVERALL THROUGHPUT COMPARISON
+     SECTION 1 — OVERALL THROUGHPUT
 ════════════════════════════════════════════════════════════ -->
 <h2>Overall Throughput Comparison</h2>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.6rem">
-  All runs: <code>10,000 × 1 MiB</code> files, concurrency 200,
-  bucket <code>aws-c-s3-test-bucket-269381</code> (us-west-2).
-  Instance: <strong>c7gn.16xlarge</strong> (Graviton3, ARM).
-  <em>Note: perf-based profiling below was done on <strong>c5n.18xlarge</strong> (x86) as
-  <code>perf</code> does not support ARM on this setup — throughput numbers differ between instances.</em>
+  All runs: <code>10,000 × 1 MiB</code> files, concurrency 500,
+  bucket in <code>us-west-2</code>, instance <strong>c7gn.16xlarge</strong> (100 Gbps network).
 </p>
 
 <table class="perf-table">
@@ -298,7 +313,7 @@
       <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-rclone" style="width:71%"></div></div></td>
       <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-rclone" style="width:34%"></div></div></td>
     </tr>
-    <tr class="dim-row">
+    <tr class="warn-row">
       <td><strong>cli-crt</strong></td>
       <td>CLI tool (Python, single-threaded)</td>
       <td>4.8 Gb/s</td>
@@ -311,270 +326,501 @@
 
 <div class="callout" style="margin-top:1rem">
   <strong>crt-python</strong> is the raw SDK library — it downloads data directly into callbacks
-  with no serialization overhead. The CLI tools (<code>cli-crt</code>, <code>s5cmd</code>,
-  <code>rclone</code>) all do additional work: <strong>ListObjects</strong> to enumerate files
-  and per-object <strong>serialization / deserialization</strong> steps.
-  <code>cli-crt</code> is especially slow because that extra work runs on a
-  <strong>single Python thread</strong>.
+  with no <code>ListObjects</code> or serialization overhead. The CLI tools (<code>cli-crt</code>,
+  <code>s5cmd</code>, <code>rclone</code>) all do additional coordination work.
+  <code>cli-crt</code> is the slowest because that work runs on a
+  <strong>single Python thread under the GIL</strong>.
+  The rest of this page explains why — step by step — using flame graphs.
 </div>
 
 
 <!-- ═══════════════════════════════════════════════════════════
-     SECTION 2 — DIVE DEEP: WHY IS cli-crt SLOW?
+     SECTION 2 — FLAME GRAPH ANALYSIS
+     Step 1: Python-level view (py-spy)
 ════════════════════════════════════════════════════════════ -->
-<h2>Dive Deep: Why Is cli-crt Slow?</h2>
+<h2>Flame Graph Analysis: Why Is cli-crt So Much Slower?</h2>
+
+<h3><span class="step-label">Step 1</span> Python-level view — crt-python is not a fair baseline</h3>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
-  <code>cli-crt</code> uses the same underlying CRT library as <code>crt-python</code>
-  but achieves only 3.7 Gb/s download vs 54.6 Gb/s — a 14.8× gap.
-  Two root causes explain the difference:
+  <code>py-spy</code> profiles of the two extremes placed side-by-side. The contrast is immediate:
+  <code>crt-python</code> skips <code>ListObjects</code> and serialization entirely — the caller provides
+  the object list and data lands straight in the callback. <code>cli-crt</code> must do all of that work,
+  and it all runs on a <strong>single Python thread under the GIL</strong>.
 </p>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-  <div class="callout warn" style="margin:0">
-    <strong>① Extra serialization steps</strong><br>
-    The CLI must call <strong>ListObjects</strong> to discover what to transfer,
-    then serialize/deserialize each S3 request and response through a higher-level
-    API layer. <code>crt-python</code> as a library skips all of this — the caller
-    provides the object list directly and data lands straight in the callback.
-  </div>
-  <div class="callout warn" style="margin:0">
-    <strong>② Single Python thread</strong><br>
-    All that coordination work (listing, scheduling, dispatching) runs on a
-    <strong>single Python thread</strong> with the GIL. The CRT I/O threads race
-    ahead while Python can't keep up dispatching new requests.
-    Switching to Python free-threading (no GIL, Python 3.14t) partially addresses this but
-    doesn't eliminate the serialization overhead.
-  </div>
+<div class="compare-grid">
+  <figure>
+    <img src="cli-py-spy.png" alt="py-spy flamegraph for cli-crt (slow path)" />
+    <figcaption>
+      <strong>cli-crt — 3.7 Gb/s</strong><br>
+      Wide, deep profile. ~75% of samples are in <code>list_objects</code> and
+      <code>_get_botocore_http_request</code> (endpoint resolution + per-object
+      serialization). Only ~25% of samples reach CRT.
+      All coordination runs on one thread under the GIL.
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="crt-python-py-spy.png" alt="py-spy flamegraph for crt-python (fast path)" />
+    <figcaption>
+      <strong>crt-python — 54.6 Gb/s</strong><br>
+      Very shallow profile. No <code>ListObjects</code>, no serialization layer.
+      Python spends almost no CPU time; the CRT handles I/O directly in native threads.
+    </figcaption>
+  </figure>
 </div>
 
-<h3>Java Transfer Manager as an Analogy</h3>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
-  The Java Transfer Manager shows the same overhead pattern — ListObjects + multi-level
-  scheduling — making it a useful cross-language comparison for the free-threading variant:
+  Zoomed in: <code>_get_botocore_http_request</code> is the hot function in <code>cli-crt</code> —
+  this is where per-object endpoint resolution and serialization concentrate.
+  This frame is entirely absent from the <code>crt-python</code> profile.
 </p>
+<img src="_get_botocore_http_request_from_cli-py-spy.png"
+     alt="Zoomed py-spy view showing _get_botocore_http_request overhead in cli-crt"
+     class="img-full" />
 
-<table class="analogy-table">
-  <thead>
-    <tr>
-      <th>Python</th>
-      <th class="match-cell">≈</th>
-      <th>Java</th>
-      <th>Overhead pattern</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>cli-crt (free-threading)</strong><br><span style="color:#888;font-size:0.78rem">~5.18 Gb/s download</span></td>
-      <td class="match-cell">≈</td>
-      <td><strong>Java Transfer Manager (CRT)</strong><br><span style="color:#888;font-size:0.78rem">8.48–11.42 Gb/s download</span></td>
-      <td>ListObjects + scheduling layer + multi-thread coordination</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="callout info">
-  Enabling Python <strong>free-threading</strong> (no GIL, Python 3.14t) for <code>cli-crt</code>
-  lifts throughput from 3.7 Gb/s to ~5.18 Gb/s — landing in the same performance tier as the
-  Java Transfer Manager (~8–11 Gb/s). Both do <strong>ListObjects + multi-level scheduling</strong>;
-  the remaining gap is largely Java's more mature threading model vs Python's still-maturing
-  free-threading runtime.
+<div class="callout warn">
+  <strong>crt-python is not a fair baseline for the CLI.</strong>
+  It simply does less work — the caller provides the object list directly, bypassing all
+  CLI coordination. A direct comparison overstates the CLI's inefficiency. The real question is:
+  given that <code>cli-crt</code> <em>must</em> do <code>ListObjects</code> + serialization,
+  how efficiently can it do so?
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     SECTION 3 — DEEP DIVE: RAW PROFILING RESULTS
-════════════════════════════════════════════════════════════ -->
-<h2>Deep Dive: Raw Profiling Results</h2>
-<p style="font-size:0.88rem;color:#555;margin-bottom:0.6rem">
-  Detailed measurements from <code>perf record</code> runs on
-  <strong>c5n.18xlarge</strong> (x86_64), <code>download-1MiB-10_000x</code> workload,
-  concurrency 200. Throughput is lower than the c7gn numbers above due to the different instance type.
+<!-- Step 2: Java vs Python — same work, different parallelism -->
+<h3 style="margin-top:2rem"><span class="step-label">Step 2</span> Java vs Python — same work, different parallelism</h3>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  A fairer comparison is <strong>Java Transfer Manager</strong> vs <strong>cli-crt</strong>:
+  both do <code>ListObjects</code> + per-object serialization + CRT dispatch.
+  The key difference is that Java distributes that coordination work across many threads,
+  while <code>cli-crt</code> serializes it all on a single Python thread under the GIL.
+  <em>Profiling runs below on <strong>c5n.18xlarge</strong> (x86, concurrency 200) — throughput
+  differs from the c7gn numbers above, but relative ordering is consistent.</em>
 </p>
 
-<table class="perf-table">
+<table class="perf-table" style="margin-bottom:1rem">
   <thead>
     <tr>
-      <th>Client / Variant</th>
-      <th>Runner</th>
+      <th>Client</th>
       <th>Download</th>
-      <th>Duration</th>
-      <th>Notes</th>
       <th class="bar-cell">Relative</th>
+      <th>Notes</th>
     </tr>
   </thead>
   <tbody>
     <tr class="highlight-row">
       <td><strong>Java — SDK CRT Client</strong></td>
-      <td><code>sdk-java-client-crt</code></td>
       <td><strong>22.88 Gb/s</strong></td>
-      <td>3.67 s</td>
-      <td>Direct CRT client, serialization per object, no ListObjects</td>
       <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:100%"></div></div></td>
-    </tr>
-    <tr>
-      <td><strong>Java — Transfer Manager CRT</strong> <span style="font-size:0.78rem;color:#888">(Java concurrency=250)</span></td>
-      <td><code>sdk-java-tm-crt</code></td>
-      <td>11.42 Gb/s</td>
-      <td>7.34 s</td>
-      <td>ListObjects + scheduling; Java-side concurrency=250, CRT concurrency=500</td>
-      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:50%"></div></div></td>
-    </tr>
-    <tr>
-      <td><strong>Java — Transfer Manager CRT</strong> <span style="font-size:0.78rem;color:#888">(Java default concurrency=100)</span></td>
-      <td><code>sdk-java-tm-crt</code></td>
-      <td>8.48 Gb/s</td>
-      <td>9.89 s</td>
-      <td>ListObjects + scheduling; Java-side default concurrency=100, CRT concurrency=500</td>
-      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:37%"></div></div></td>
-    </tr>
-    <tr>
-      <td><strong>cli-crt — free-threading</strong></td>
-      <td>Python 3.14t (no GIL)</td>
-      <td>5.18 Gb/s</td>
-      <td>16.19 s</td>
-      <td>ListObjects + serialization; GIL removed — similar tier to Java TM</td>
-      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-freethread" style="width:22.6%"></div></div></td>
+      <td>Direct CRT + per-object serialization, no <code>ListObjects</code> — upper ceiling</td>
     </tr>
     <tr>
       <td><strong>s5cmd</strong></td>
-      <td>CLI tool (Go)</td>
       <td>14.70 Gb/s</td>
-      <td>5.71 s</td>
-      <td>Go CLI; strong multi-thread scheduling, no GIL</td>
-      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-s5cmd" style="width:64.2%"></div></div></td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-s5cmd" style="width:64%"></div></div></td>
+      <td>Go CLI; native multi-threading, no GIL</td>
     </tr>
     <tr>
       <td><strong>rclone</strong></td>
-      <td>CLI tool (Go)</td>
       <td>13.13 Gb/s</td>
-      <td>6.39 s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-rclone" style="width:57%"></div></div></td>
       <td>Go CLI; slightly lower than s5cmd on this workload</td>
-      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-rclone" style="width:57.4%"></div></div></td>
+    </tr>
+    <tr>
+      <td><strong>Java TM CRT</strong> <span style="color:#888;font-size:0.78rem">(concurrency=250)</span></td>
+      <td>11.42 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:50%"></div></div></td>
+      <td><code>ListObjects</code> + scheduling; Java 250 threads, CRT concurrency=500</td>
+    </tr>
+    <tr>
+      <td><strong>Java TM CRT</strong> <span style="color:#888;font-size:0.78rem">(default concurrency=100)</span></td>
+      <td>8.48 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:37%"></div></div></td>
+      <td><code>ListObjects</code> + scheduling; Java default 100 threads, CRT concurrency=500</td>
+    </tr>
+    <tr class="warn-row">
+      <td><strong>cli-crt</strong> <span style="color:#888;font-size:0.78rem">(current, with GIL)</span></td>
+      <td><strong>3.7 Gb/s</strong></td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-cli" style="width:16%"></div></div></td>
+      <td><code>ListObjects</code> + serialization, <strong>single-threaded</strong> under the GIL</td>
     </tr>
   </tbody>
 </table>
 
+<div class="two-col">
+  <div class="callout warn" style="margin:0">
+    <strong>CLI — one thread feeds everything</strong><br>
+    Even though CRT event loops consume ~62% of CPU samples
+    (<code>cli-default.html</code>: <strong>62.33%</strong>, 36 AwsEventLoop threads),
+    the remaining <strong>~38%</strong> is dominated by a <strong>single <code>python3</code> thread</strong>
+    under the GIL running <code>ListObjects</code>, endpoint resolution, and botocore
+    serialization. That single thread cannot keep pace with 36 CRT I/O threads.
+  </div>
+  <div class="callout info" style="margin:0">
+    <strong>Java TM — more CRT threads, more parallelism</strong><br>
+    The Java TM spawns <strong>73 CRT AwsEventLoop threads</strong> (vs 36 for CLI),
+    giving the native I/O layer more capacity.
+    CRT event loops consume <strong>72.29%</strong> of samples
+    (<code>java-tm-crt-default.html</code>), yet deliver
+    <strong>2.3× higher throughput</strong>. More native I/O threads means more
+    objects can be processed concurrently at the CRT layer.
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     SECTION 4 — PROFILES
-════════════════════════════════════════════════════════════ -->
-<h2>Profiles</h2>
-
-<!-- Part 1: py-spy side-by-side comparison -->
-<h3>py-spy Profiles — Python-Level View</h3>
+<!-- Screenshots showing thread count difference -->
+<h3 style="margin-top:1.5rem">Flamegraph Screenshots — Thread Count at a Glance</h3>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
-  Two <code>py-spy</code> profiles placed side-by-side: the slow <code>cli-crt</code> path
-  vs the fast <code>crt-python</code> library path. Comparing them directly shows exactly
-  which Python-layer work disappears when you switch from CLI to library.
+  The screenshots below show the top of each flamegraph. The number of distinct thread
+  columns visible immediately reveals the concurrency difference between the two clients.
 </p>
 
-<div class="grid">
+<div class="compare-grid" style="margin-bottom:1.5rem">
+  <figure>
+    <img src="cli-perf-screen-shot-annotated.png" alt="perf flamegraph screenshot for cli-crt (annotated)" />
+    <figcaption>
+      <strong>cli-crt (<code>cli-default.html</code>)</strong><br>
+      <span style="color:#2563eb;font-weight:700">Blue (left, 62%)</span> — AWS CRT AwsEventLoop* threads (36 threads).
+      <span style="color:#b45309;font-weight:700">Amber (right, 38%)</span> — single <code>python3</code> thread under the GIL.
+      One wide Python column bottlenecks all coordination work.
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="java-perf-screen-shot-annotated.png" alt="perf flamegraph screenshot for Java TM CRT (annotated)" />
+    <figcaption>
+      <strong>Java TM CRT (<code>java-tm-crt-default.html</code>)</strong><br>
+      <span style="color:#2563eb;font-weight:700">Blue (left, 72%)</span> — AWS CRT AwsEventLoop* threads (73 threads).
+      <span style="color:#15803d;font-weight:700">Green (right, 28%)</span> — Java SDK / JVM threads (C2_CompilerThre…).
+      No single-threaded bottleneck; coordination work is distributed.
+    </figcaption>
+  </figure>
+</div>
 
-  <div class="card">
-    <span class="badge badge-cli">py-spy — cli-crt (main) · SLOW PATH</span>
-    <div class="stats">
-      <span class="stat">Tool: <strong>py-spy</strong></span>
-      <span class="stat">🐢 <strong>3.7 Gb/s</strong> download</span>
-      <span class="stat">Single Python thread</span>
+<!-- AwsEventLoop detail comparison -->
+<h3 style="margin-top:1.5rem">AwsEventLoop Thread Analysis — CPU% Breakdown</h3>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  Extracting all <code>AwsEventLoop*</code> thread entries from each flamegraph and summing
+  their CPU% confirms the difference in native I/O utilization.
+</p>
+
+<div class="two-col" style="margin-bottom:1rem">
+
+  <!-- CLI detail -->
+  <div style="background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:1rem">
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#1d4ed8;margin-bottom:0.6rem">
+      cli-default.html — 36 AwsEventLoop threads
     </div>
-    <p class="desc">
-      Python-level flamegraph of <code>cli-crt</code>'s main entry point (no free-threading).
-      The profile is wide and deep — it shows <strong>ListObjects</strong> calls,
-      serialization/deserialization work, and scheduling overhead all running on a
-      single Python thread under the GIL.  This is the root cause of the 14.8× gap
-      vs <code>crt-python</code>.
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+      <thead>
+        <tr style="background:#f1f5f9">
+          <th style="padding:4px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Thread</th>
+          <th style="padding:4px 8px;text-align:right;border-bottom:1px solid #e5e7eb">CPU %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#fffbeb"><td style="padding:3px 8px"><strong>AwsEventLoop15</strong> ⚠ outlier</td><td style="padding:3px 8px;text-align:right"><strong>6.68%</strong></td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop16</td><td style="padding:3px 8px;text-align:right">2.08%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop24</td><td style="padding:3px 8px;text-align:right">2.03%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop26, 30, 13…</td><td style="padding:3px 8px;text-align:right">1.88–1.92%</td></tr>
+        <tr><td style="padding:3px 8px;color:#888"><em>remaining 31 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">0.89–1.88% each</td></tr>
+        <tr style="background:#f0fdf4;font-weight:700;border-top:2px solid #e5e7eb">
+          <td style="padding:5px 8px">Total (62.33%)</td>
+          <td style="padding:5px 8px;text-align:right">
+            <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
+              <div style="background:#6b7280;height:100%;width:62.33%"></div>
+            </div>
+            <strong style="margin-left:6px">62.33%</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.8rem;color:#666;margin-top:0.6rem">
+      One hot outlier (AwsEventLoop15 at 6.68%), rest tightly clustered 0.89–2.08%.
+      Remaining <strong>~38%</strong> = single <code>python3</code> thread (GIL bottleneck).
     </p>
-    <a class="card-link" href="py-spy-profile-cli-main.html" target="_blank">Open py-spy cli-crt flamegraph</a>
   </div>
 
-  <div class="card">
-    <span class="badge badge-python">py-spy — crt-python (small files → disk) · FAST PATH</span>
-    <div class="stats">
-      <span class="stat">Tool: <strong>py-spy</strong></span>
-      <span class="stat">🚀 <strong>54.6 Gb/s</strong> download</span>
-      <span class="stat">Library, no CLI overhead</span>
+  <!-- Java TM detail -->
+  <div style="background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:1rem">
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#92400e;margin-bottom:0.6rem">
+      java-tm-crt-default.html — 73 AwsEventLoop threads
     </div>
-    <p class="desc">
-      Python-level flamegraph of <code>crt-python</code> downloading many small files
-      to disk. The profile is very shallow — there is no ListObjects step, no
-      serialization layer, and the CRT handles I/O directly. Contrast with the
-      <code>cli-crt</code> profile to see exactly what overhead the CLI adds.
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+      <thead>
+        <tr style="background:#f1f5f9">
+          <th style="padding:4px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Thread</th>
+          <th style="padding:4px 8px;text-align:right;border-bottom:1px solid #e5e7eb">CPU %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#fffbeb"><td style="padding:3px 8px"><strong>AwsEventLoop51</strong> ⚠ outlier</td><td style="padding:3px 8px;text-align:right"><strong>5.25%</strong></td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop52</td><td style="padding:3px 8px;text-align:right">1.46%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop23, 19, 2…</td><td style="padding:3px 8px;text-align:right">1.30–1.38%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop17, 14, 24…</td><td style="padding:3px 8px;text-align:right">1.22–1.25%</td></tr>
+        <tr><td style="padding:3px 8px;color:#888"><em>remaining 68 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">0.31–1.21% each</td></tr>
+        <tr style="background:#f0fdf4;font-weight:700;border-top:2px solid #e5e7eb">
+          <td style="padding:5px 8px">Total (72.29%)</td>
+          <td style="padding:5px 8px;text-align:right">
+            <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
+              <div style="background:#f59e0b;height:100%;width:72.29%"></div>
+            </div>
+            <strong style="margin-left:6px">72.29%</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.8rem;color:#666;margin-top:0.6rem">
+      One hot outlier (AwsEventLoop51 at 5.25%), rest clustered 0.31–1.46%.
+      Remaining <strong>~28%</strong> = other threads (Java SDK coordination, JVM internals), well distributed.
     </p>
-    <a class="card-link" href="py-spy-profile-python-lot-small-disk.html" target="_blank">Open py-spy crt-python flamegraph</a>
   </div>
 
 </div>
 
-<!-- Part 2: all other flamegraphs -->
-<h3 style="margin-top:1.75rem">perf &amp; Java Profiles</h3>
+<div class="callout" style="margin-top:0.5rem">
+  <strong>Key insight from the thread data:</strong> Both clients have a single hot outlier
+  CRT AwsEventLoop thread (~5–7%), and both allocate a large share of CPU to native I/O (62–72%).
+  Java runs <strong>2× more CRT threads</strong> (73 vs 36), giving it more native I/O capacity.
+  Additionally, the non-CRT coordination work in Java is spread across multiple threads rather than
+  serialized on one — as confirmed by the flamegraph screenshots above.
+</div>
+
+<div class="callout" style="margin-top:0.5rem">
+  <strong>Concurrency within the SDK layer also matters:</strong>
+  raising Java-side threads from 100 → 250 gains <strong>+35%</strong> (8.48 → 11.42 Gb/s)
+  with zero CRT changes. The bottleneck is how many objects are in-flight in the coordination
+  layer, not the native I/O engine.
+</div>
+
+
+<!-- Step 3: Free-threading -->
+<h3 style="margin-top:2rem"><span class="step-label">Step 3</span> Make cli-crt more parallel — free-threading</h3>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
-  System-level <code>perf</code> profiles for <code>cli-crt</code> (regular and free-threading)
-  and Java SDK flamegraphs for cross-language comparison.
+  The natural follow-up: can we close the gap by making <code>cli-crt</code> more parallel?
+  Two changes were tested together:
+  (1) a <strong>thread pool</strong> for per-object serialization dispatch, and
+  (2) <strong>Python 3.14t free-threading</strong> (no GIL) so threads can run concurrently.
+</p>
+
+<table class="perf-table" style="margin-bottom:1rem">
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Download</th>
+      <th class="bar-cell">Relative</th>
+      <th>vs baseline</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="warn-row">
+      <td><strong>cli-crt</strong> (current, with GIL)</td>
+      <td>3.7 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-cli" style="width:35%"></div></div></td>
+      <td>baseline</td>
+    </tr>
+    <tr class="highlight-row">
+      <td><strong>cli-crt</strong> (free-threading, no GIL)</td>
+      <td><strong>5.18 Gb/s</strong></td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-freethread" style="width:49%"></div></div></td>
+      <td><strong>+40%</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Java TM CRT</strong> (default concurrency=100) <em style="color:#888;font-size:0.78rem">— for reference</em></td>
+      <td>8.48 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-java" style="width:80%"></div></div></td>
+      <td>same work tier, mature runtime</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  Free-threading lifts <code>cli-crt</code> from 3.7 → <strong>5.18 Gb/s (+40%)</strong>
+  with no changes to CRT or CLI transfer logic. This puts it in the same performance tier as
+  the Java Transfer Manager at default concurrency. The remaining gap is Python's
+  still-maturing free-threading runtime vs Java's mature JVM thread scheduler —
+  not a CRT problem.
+</div>
+
+
+<!-- Step 4: Rust TM -->
+<h3 style="margin-top:2rem"><span class="step-label">Step 4</span> Is the language runtime the bottleneck? — Rust Transfer Manager</h3>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  If the bottleneck were Python's runtime, a <strong>Rust-based Transfer Manager</strong>
+  (<code>rust-tm</code>) — native language, no GIL, no JVM warmup — should be dramatically faster.
+</p>
+
+<table class="perf-table" style="margin-bottom:1rem">
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Download</th>
+      <th class="bar-cell">Relative</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="highlight-row">
+      <td><strong>cli-crt</strong> (free-threading, no GIL)</td>
+      <td>5.18 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-freethread" style="width:100%"></div></div></td>
+      <td>Python TM + thread pool, no GIL</td>
+    </tr>
+    <tr>
+      <td><strong>rust-tm</strong></td>
+      <td>~5.0 Gb/s</td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar bar-rust" style="width:97%"></div></div></td>
+      <td>Native Rust TM; <code>ListObjects</code> + scheduling, default config</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Moving to a native language yielded no meaningful improvement.</strong>
+  <code>rust-tm</code> and free-threading <code>cli-crt</code> land at roughly the same throughput.
+  The bottleneck is <strong>coordination concurrency</strong> — how many
+  <code>ListObjects</code> + serialization + CRT dispatch tasks are in flight simultaneously —
+  not the language runtime. Even in native code, an under-tuned concurrency level in the
+  Transfer Manager layer delivers no advantage.
+</div>
+
+
+<!-- Conclusion -->
+<h3 style="margin-top:2rem">Conclusion</h3>
+
+<table class="perf-table" style="margin-bottom:1rem">
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>Evidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Concurrency beats language</td>
+      <td>Rust TM ≈ Python free-threading; Java TM gains 35% just by increasing thread count</td>
+    </tr>
+    <tr>
+      <td>SDK Transfer Managers lag Go CLIs</td>
+      <td>Java TM (8–11 Gb/s) and rust-tm (~5 Gb/s) fall below s5cmd (14.7 Gb/s) at comparable settings</td>
+    </tr>
+    <tr>
+      <td>Language overhead is secondary</td>
+      <td>Free-threading gains 40% for Python; GIL removal alone is insufficient to match Go</td>
+    </tr>
+    <tr>
+      <td>CRT is not the bottleneck</td>
+      <td>Gaps disappear when SDK coordination is bypassed: crt-python (54.6 Gb/s) and Java SDK CRT client (22.88 Gb/s) both at the top</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info" style="margin-bottom:2rem">
+  The path to matching or exceeding Go CLI performance with SDK-based Transfer Managers is
+  primarily an <strong>architecture problem — higher concurrency in the ListObjects + dispatch layer</strong> —
+  not a CRT or language-binding problem.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3 — FLAMEGRAPH PROFILES
+════════════════════════════════════════════════════════════ -->
+<h2>Flamegraph Profiles</h2>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  All interactive flamegraphs referenced in the analysis above.
+  <strong>py-spy</strong> profiles show Python-level call stacks only.
+  <strong>perf</strong> profiles show the full native call stack including CRT internals, FFI boundaries, and kernel I/O.
 </p>
 
 <div class="grid">
 
   <div class="card">
-    <span class="badge badge-cli">perf — cli-crt (no free-threading)</span>
+    <span class="badge badge-cli">py-spy — cli-crt · Step 1</span>
     <div class="stats">
-      <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
-      <span class="stat">🐢 <strong>3.7 Gb/s</strong> download</span>
+      <span class="stat">Tool: <strong>py-spy</strong></span>
+      <span class="stat">🐢 <strong>3.7 Gb/s</strong></span>
       <span class="stat">Single Python thread</span>
     </div>
     <p class="desc">
-      System-level flamegraph for the same <code>cli-crt</code> run as the py-spy profile
-      above (no free-threading, 3.7 Gb/s). Shows the full native call stack —
-      CRT internals, FFI boundaries, and kernel I/O paths — to complement the
-      Python-layer view from py-spy.
+      Python-level flamegraph of <code>cli-crt</code>. Wide and deep — shows
+      <code>ListObjects</code>, per-object serialization via <code>_get_botocore_http_request</code>,
+      and scheduling overhead all on one thread under the GIL. ~75% of samples never reach CRT.
     </p>
-    <a class="card-link" href="cli-perf-profile.html" target="_blank">Open cli-crt perf flamegraph</a>
+    <a class="card-link" href="py-spy-profile-cli-main.html" target="_blank">Open cli-crt py-spy flamegraph</a>
   </div>
 
   <div class="card">
-    <span class="badge badge-freethread">perf — cli-crt (free-threading)</span>
+    <span class="badge badge-python">py-spy — crt-python · Step 1</span>
+    <div class="stats">
+      <span class="stat">Tool: <strong>py-spy</strong></span>
+      <span class="stat">🚀 <strong>54.6 Gb/s</strong></span>
+      <span class="stat">Library, no CLI overhead</span>
+    </div>
+    <p class="desc">
+      Python-level flamegraph of <code>crt-python</code>. Very shallow — no <code>ListObjects</code>,
+      no serialization layer. Python spends almost no CPU time; CRT handles all I/O directly.
+      This is why crt-python is not a fair baseline comparison for CLI tools.
+    </p>
+    <a class="card-link" href="py-spy-profile-python-lot-small-disk.html" target="_blank">Open crt-python py-spy flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-cli">perf — cli-crt (default) · Step 2</span>
     <div class="stats">
       <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
-      <span class="stat">🚀 <strong>5.18 Gb/s</strong> download</span>
+      <span class="stat">🐢 <strong>3.7 Gb/s</strong></span>
+      <span class="stat">AwsEventLoop: <strong>62.33%</strong> · 36 threads</span>
+    </div>
+    <p class="desc">
+      System-level flamegraph for the standard <code>cli-crt</code> run. Shows the full native
+      call stack. Despite 36 CRT AwsEventLoop threads consuming 62% of CPU, a single
+      <code>python3</code> thread in the remaining 38% is the bottleneck.
+    </p>
+    <a class="card-link" href="cli-default.html" target="_blank">Open cli-default perf flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-java">perf — Java TM CRT (default) · Step 2</span>
+    <div class="stats">
+      <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
+      <span class="stat">🚀 <strong>8.46 Gb/s</strong></span>
+      <span class="stat">AwsEventLoop: <strong>72.29%</strong> · 73 threads</span>
+    </div>
+    <p class="desc">
+      System-level flamegraph for the Java Transfer Manager (default concurrency=100).
+      Same <code>ListObjects</code> + scheduling work as <code>cli-crt</code>, but with
+      73 CRT AwsEventLoop threads (vs 36 for CLI) and no single-threaded Python bottleneck.
+      Delivers 2.3× higher throughput.
+    </p>
+    <a class="card-link" href="java-tm-crt-default.html" target="_blank">Open java-tm-crt-default perf flamegraph</a>
+  </div>
+
+  <div class="card">
+    <span class="badge badge-freethread">perf — cli-crt (free-threading) · Step 3</span>
+    <div class="stats">
+      <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
+      <span class="stat">🚀 <strong>5.18 Gb/s</strong></span>
       <span class="stat">Python 3.14t (no GIL)</span>
     </div>
     <p class="desc">
-      <code>cli-crt</code> re-run with Python 3.14t free-threading (GIL disabled).
-      Removing the GIL allows ListObjects + scheduling work to run concurrently,
-      lifting throughput from 3.7 → 5.18 Gb/s. Lands in the same tier as the
-      Java Transfer Manager (Java concurrency=100, CRT concurrency=500), confirming
-      the bottleneck is <em>ListObjects + serialization overhead</em>, not the GIL alone.
+      <code>cli-crt</code> with Python 3.14t free-threading (GIL disabled) and a thread pool
+      for serialization dispatch. Lifts throughput from 3.7 → 5.18 Gb/s (+40%), landing in the
+      same tier as Java TM at default concurrency.
     </p>
     <a class="card-link" href="cli-freethread-download.html" target="_blank">Open free-threading perf flamegraph</a>
   </div>
 
   <div class="card">
-    <span class="badge badge-java">Java — SDK CRT Client</span>
+    <span class="badge badge-java">perf — Java SDK CRT Client</span>
     <div class="stats">
       <span class="stat">🚀 <strong>22.88 Gb/s</strong></span>
       <span class="stat">⏱ 3.67 s</span>
-      <span class="stat"><code>sdk-java-client-crt</code></span>
+      <span class="stat">No ListObjects</span>
     </div>
     <p class="desc">
-      Java AWS SDK v2 CRT-backed HTTP client — no Transfer Manager, no ListObjects.
-      Has per-object serialization overhead but Java's JIT and threading handle it
-      efficiently. The flamegraph shows the serialization path through the SDK layer.
+      Java AWS SDK v2 CRT-backed HTTP client — no Transfer Manager, no <code>ListObjects</code>.
+      Per-object serialization overhead only. Represents the upper throughput ceiling for
+      any SDK client that must do per-object work. Java's JIT and threading handle it efficiently.
     </p>
     <a class="card-link" href="java-crt-client.html" target="_blank">Open Java CRT Client flamegraph</a>
-  </div>
-
-  <div class="card">
-    <span class="badge badge-java">Java — Transfer Manager CRT</span>
-    <div class="stats">
-      <span class="stat">🚀 <strong>8.48 Gb/s</strong> <em style="color:#888;font-size:0.75rem">(Java default concurrency=100)</em></span>
-      <span class="stat">🚀 <strong>11.42 Gb/s</strong> <em style="color:#d97706;font-size:0.75rem">(Java concurrency=250)</em></span>
-      <span class="stat"><code>sdk-java-tm-crt</code></span>
-    </div>
-    <p class="desc">
-      S3 Transfer Manager backed by CRT. The flamegraph shows the ListObjects step and
-      extra scheduling layers on top of the direct client path — directly analogous to
-      <code>cli-crt</code> with free-threading enabled.
-    </p>
-    <a class="card-link" href="java-crt-transfer-manager.html" target="_blank">Open Transfer Manager flamegraph</a>
   </div>
 
 </div>
