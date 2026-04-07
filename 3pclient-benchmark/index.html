@@ -248,6 +248,27 @@
       color: #888;
       text-align: center;
     }
+
+    /* ── lightbox ────────────────────────────────────────── */
+    .lb-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+      cursor: zoom-out;
+      align-items: center;
+      justify-content: center;
+    }
+    .lb-overlay.active { display: flex; }
+    .lb-overlay img {
+      max-width: 95vw;
+      max-height: 95vh;
+      border-radius: 4px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      cursor: default;
+    }
+    img.zoomable { cursor: zoom-in; }
   </style>
 </head>
 <body>
@@ -263,8 +284,7 @@
 <p class="subtitle">
   Throughput comparison of several S3 clients and a step-by-step flame graph analysis of
   why the AWS CLI is slower than competing tools — and what it takes to close the gap.
-  Workload: <strong>10,000 × 1 MiB</strong> files (~10 GiB total). Instance: <strong>c7gn.16xlarge</strong> (ARM) for throughput numbers;
-  <strong>c5n.18xlarge</strong> (x86) for profiling runs.
+  Workload: <strong>10,000 × 1 MiB</strong> files (~10 GiB total). Instance: <strong>c5n.18xlarge</strong> (x86).
 </p>
 
 
@@ -274,7 +294,7 @@
 <h2>Overall Throughput Comparison</h2>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.6rem">
   All runs: <code>10,000 × 1 MiB</code> files, concurrency 500,
-  bucket in <code>us-west-2</code>, instance <strong>c7gn.16xlarge</strong> (100 Gbps network).
+  bucket in <code>us-west-2</code>, instance <strong>c5n.18xlarge</strong> (x86).
 </p>
 
 <table class="perf-table">
@@ -451,7 +471,7 @@
   <div class="callout warn" style="margin:0">
     <strong>CLI — one thread feeds everything</strong><br>
     Even though CRT event loops consume ~62% of CPU samples
-    (<code>cli-default.html</code>: <strong>62.33%</strong>, 36 AwsEventLoop threads),
+    (<code>cli-perf-profile.html</code>: <strong>62.33%</strong>, 36 AwsEventLoop threads),
     the remaining <strong>~38%</strong> is dominated by a <strong>single <code>python3</code> thread</strong>
     under the GIL running <code>ListObjects</code>, endpoint resolution, and botocore
     serialization. That single thread cannot keep pace with 36 CRT I/O threads.
@@ -464,6 +484,16 @@
     (<code>java-tm-crt-default.html</code>), yet deliver
     <strong>2.3× higher throughput</strong>. More native I/O threads means more
     objects can be processed concurrently at the CRT layer.
+    <br><br>
+    <strong>Why 73 vs 36?</strong> On <code>c5n.18xlarge</code> there are
+    <strong>72 vCPUs</strong> (36 physical cores × 2 hyperthreads).
+    The Java SDK queries <code>Runtime.getRuntime().availableProcessors()</code>
+    which returns the <em>logical</em> (hyper-threaded) count — <strong>72</strong> —
+    so the CRT is initialized with 72 event loop threads (73 observed including rounding/overhead).
+    The CRT's own C-level default uses <code>aws_system_info_processor_count()</code>
+    which returns <em>physical cores only</em> — <strong>36</strong>.
+    This means the CLI and <code>crt-python</code> run with half the I/O threads
+    that the Java SDK allocates by default.
   </div>
 </div>
 
@@ -498,16 +528,53 @@
 <!-- AwsEventLoop detail comparison -->
 <h3 style="margin-top:1.5rem">AwsEventLoop Thread Analysis — CPU% Breakdown</h3>
 <p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
-  Extracting all <code>AwsEventLoop*</code> thread entries from each flamegraph and summing
-  their CPU% confirms the difference in native I/O utilization.
+  All <code>AwsEventLoop*</code> thread entries were extracted from each flamegraph using
+  <code>analyze_aws_event_loops.py</code>. <code>crt-python-default.html</code> is included as
+  a ceiling reference — no <code>ListObjects</code>, no serialization, so nearly all CPU goes
+  directly to native I/O.
 </p>
 
-<div class="two-col" style="margin-bottom:1rem">
+<!-- Three-column: crt-python (ceiling), CLI, Java TM -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem">
+
+  <!-- crt-python ceiling -->
+  <div style="background:#fff;border:2px solid #3b82f6;border-radius:8px;padding:1rem">
+    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#1e40af;margin-bottom:0.6rem">
+      crt-python-default.html — ceiling (no ListObjects)
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+      <thead>
+        <tr style="background:#f1f5f9">
+          <th style="padding:4px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Thread</th>
+          <th style="padding:4px 8px;text-align:right;border-bottom:1px solid #e5e7eb">CPU %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#fffbeb"><td style="padding:3px 8px"><strong>AwsEventLoop12</strong> ⚠ outlier</td><td style="padding:3px 8px;text-align:right"><strong>6.23%</strong></td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop10</td><td style="padding:3px 8px;text-align:right">4.03%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop17, 6, 29…</td><td style="padding:3px 8px;text-align:right">3.47–3.61%</td></tr>
+        <tr><td style="padding:3px 8px;color:#888"><em>remaining 32 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">1.49–3.03% each</td></tr>
+        <tr style="background:#dbeafe;font-weight:700;border-top:2px solid #e5e7eb">
+          <td style="padding:5px 8px">Total</td>
+          <td style="padding:5px 8px;text-align:right">
+            <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
+              <div style="background:#3b82f6;height:100%;width:93.97%"></div>
+            </div>
+            <strong style="margin-left:6px">93.97%</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.8rem;color:#666;margin-top:0.6rem">
+      36 threads, very uniform (1.49–4.03% each). No ListObjects, no serialization.
+      Only ~6% CPU goes elsewhere — this is the CRT ceiling.
+    </p>
+  </div>
 
   <!-- CLI detail -->
   <div style="background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:1rem">
     <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#1d4ed8;margin-bottom:0.6rem">
-      cli-default.html — 36 AwsEventLoop threads
+      cli-perf-profile.html — CLI with GIL
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
       <thead>
@@ -523,7 +590,7 @@
         <tr><td style="padding:3px 8px">AwsEventLoop26, 30, 13…</td><td style="padding:3px 8px;text-align:right">1.88–1.92%</td></tr>
         <tr><td style="padding:3px 8px;color:#888"><em>remaining 31 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">0.89–1.88% each</td></tr>
         <tr style="background:#f0fdf4;font-weight:700;border-top:2px solid #e5e7eb">
-          <td style="padding:5px 8px">Total (62.33%)</td>
+          <td style="padding:5px 8px">Total</td>
           <td style="padding:5px 8px;text-align:right">
             <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
               <div style="background:#6b7280;height:100%;width:62.33%"></div>
@@ -534,7 +601,7 @@
       </tbody>
     </table>
     <p style="font-size:0.8rem;color:#666;margin-top:0.6rem">
-      One hot outlier (AwsEventLoop15 at 6.68%), rest tightly clustered 0.89–2.08%.
+      36 threads. One outlier (6.68%), rest 0.89–2.08%.
       Remaining <strong>~38%</strong> = single <code>python3</code> thread (GIL bottleneck).
     </p>
   </div>
@@ -542,7 +609,7 @@
   <!-- Java TM detail -->
   <div style="background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:1rem">
     <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#92400e;margin-bottom:0.6rem">
-      java-tm-crt-default.html — 73 AwsEventLoop threads
+      java-crt-transfer-manager.html — Java TM
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
       <thead>
@@ -558,7 +625,7 @@
         <tr><td style="padding:3px 8px">AwsEventLoop17, 14, 24…</td><td style="padding:3px 8px;text-align:right">1.22–1.25%</td></tr>
         <tr><td style="padding:3px 8px;color:#888"><em>remaining 68 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">0.31–1.21% each</td></tr>
         <tr style="background:#f0fdf4;font-weight:700;border-top:2px solid #e5e7eb">
-          <td style="padding:5px 8px">Total (72.29%)</td>
+          <td style="padding:5px 8px">Total</td>
           <td style="padding:5px 8px;text-align:right">
             <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
               <div style="background:#f59e0b;height:100%;width:72.29%"></div>
@@ -569,19 +636,19 @@
       </tbody>
     </table>
     <p style="font-size:0.8rem;color:#666;margin-top:0.6rem">
-      One hot outlier (AwsEventLoop51 at 5.25%), rest clustered 0.31–1.46%.
-      Remaining <strong>~28%</strong> = other threads (Java SDK coordination, JVM internals), well distributed.
+      73 threads. One outlier (5.25%), rest 0.31–1.46%.
+      Remaining <strong>~28%</strong> = Java SDK / JVM coordination threads, well distributed.
     </p>
   </div>
 
 </div>
 
 <div class="callout" style="margin-top:0.5rem">
-  <strong>Key insight from the thread data:</strong> Both clients have a single hot outlier
-  CRT AwsEventLoop thread (~5–7%), and both allocate a large share of CPU to native I/O (62–72%).
-  Java runs <strong>2× more CRT threads</strong> (73 vs 36), giving it more native I/O capacity.
-  Additionally, the non-CRT coordination work in Java is spread across multiple threads rather than
-  serialized on one — as confirmed by the flamegraph screenshots above.
+  <strong>Key insight from the thread data:</strong>
+  Without any coordination overhead, <code>crt-python</code> pushes <strong>94%</strong> of CPU into CRT native I/O — that's the ceiling.
+  The CLI with GIL reaches only <strong>62%</strong> because 38% is stuck on one Python thread.
+  Java TM reaches <strong>72%</strong> with 2× more CRT threads and distributed coordination.
+  Free-threading (Step 3) lifts the CLI to <strong>69%</strong>, recovering CPU previously lost to GIL contention.
 </div>
 
 <div class="callout" style="margin-top:0.5rem">
@@ -638,6 +705,153 @@
   the Java Transfer Manager at default concurrency. The remaining gap is Python's
   still-maturing free-threading runtime vs Java's mature JVM thread scheduler —
   not a CRT problem.
+</div>
+
+<!-- Free-threading AwsEventLoop detail -->
+<div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:1rem;margin-top:1rem">
+  <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#166534;margin-bottom:0.6rem">
+    cli-freethread-download.html — CLI with free-threading (no GIL)
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+      <thead>
+        <tr style="background:#f1f5f9">
+          <th style="padding:4px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Thread</th>
+          <th style="padding:4px 8px;text-align:right;border-bottom:1px solid #e5e7eb">CPU %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#fffbeb"><td style="padding:3px 8px"><strong>AwsEventLoop24</strong> ⚠ outlier</td><td style="padding:3px 8px;text-align:right"><strong>11.01%</strong></td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop23</td><td style="padding:3px 8px;text-align:right">3.21%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop14, 5, 19…</td><td style="padding:3px 8px;text-align:right">2.22–2.28%</td></tr>
+        <tr><td style="padding:3px 8px">AwsEventLoop33, 11, 26…</td><td style="padding:3px 8px;text-align:right">2.07–2.09%</td></tr>
+        <tr><td style="padding:3px 8px;color:#888"><em>remaining 28 threads</em></td><td style="padding:3px 8px;text-align:right;color:#888">0.73–1.99% each</td></tr>
+        <tr style="background:#f0fdf4;font-weight:700;border-top:2px solid #e5e7eb">
+          <td style="padding:5px 8px">Total</td>
+          <td style="padding:5px 8px;text-align:right">
+            <div style="display:inline-block;background:#e5e7eb;border-radius:3px;height:10px;width:80px;overflow:hidden;vertical-align:middle">
+              <div style="background:#22c55e;height:100%;width:69.37%"></div>
+            </div>
+            <strong style="margin-left:6px">69.37%</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:0.85rem;color:#444;line-height:1.7;padding-top:0.25rem">
+      <p><strong>+7pp vs GIL baseline</strong> (62.33% → 69.37%)</p>
+      <p style="margin-top:0.5rem">Removing the GIL frees up CPU that was previously consumed by Python thread scheduling, allowing more cycles to reach CRT native I/O threads.</p>
+      <p style="margin-top:0.5rem"><strong>AwsEventLoop24 outlier at 11.01%</strong> is the largest single-thread outlier across all profiles — the free-threading scheduler is less mature, leading to occasional hot-thread imbalance.</p>
+      <p style="margin-top:0.5rem">Remaining <strong>~31%</strong> = Python free-threading coordination threads (no single-thread bottleneck).</p>
+    </div>
+  </div>
+</div>
+
+<!-- Free-threading ThreadPoolExecutor deep dive -->
+<h3 style="margin-top:1.5rem">Inside the ThreadPoolExecutor — What Are the Free Threads Actually Doing?</h3>
+<p style="font-size:0.88rem;color:#555;margin-bottom:0.75rem">
+  The flamegraph below zooms into the <code>ThreadPoolExecutor</code> row of
+  <code>cli-freethread-download.html</code>. This pool contains the Python threads that are
+  supposed to run serialization work in parallel now that the GIL is gone.
+</p>
+
+<div class="compare-grid" style="margin-bottom:1rem">
+  <figure>
+    <img src="cli-perf-screen-shot-annotated.png" alt="cli-crt with GIL — perf flamegraph top view" />
+    <figcaption>
+      <strong>cli-crt with GIL (<code>cli-perf-profile.html</code>) — 3.7 Gb/s</strong><br>
+      <span style="color:#2563eb;font-weight:700">Blue (62%)</span> CRT AwsEventLoop threads ·
+      <span style="color:#b45309;font-weight:700">Amber (38%)</span> single python3 thread (GIL).
+      No ThreadPoolExecutor — all coordination on one thread.
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="cli-free-threading-annotated.png" alt="cli-crt free-threading — ThreadPoolExecutor annotated" />
+    <figcaption>
+      <strong>cli-crt free-threading (<code>cli-freethread-download.html</code>) — 5.18 Gb/s</strong><br>
+      <span style="color:#2563eb;font-weight:700">Blue (left, 69%)</span> — AWS CRT AwsEventLoop* threads.
+      <span style="color:#15803d;font-weight:700">Green (right, 31%)</span> — ThreadPoolExecutor + python3 threads.
+      GIL is gone, but most pool threads are idle — task production rate is the bottleneck.
+    </figcaption>
+  </figure>
+</div>
+
+<div style="background:#fff;border:1px solid #e0e4ea;border-radius:8px;padding:1rem;margin-top:0.75rem">
+  <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#374151;margin-bottom:0.75rem">
+    ThreadPoolExecutor breakdown — 17.10% of total CPU samples
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+
+    <!-- Left: breakdown table -->
+    <div>
+      <p style="font-size:0.82rem;color:#555;margin-bottom:0.5rem">
+        The <code>ThreadPoolExecutor</code> block spans <strong>17.10%</strong> of total CPU width.
+        Of that, only <strong>3.78%</strong> has visible frames above it — the rest is idle/sleeping.
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <thead>
+          <tr style="background:#f1f5f9">
+            <th style="padding:4px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Frame in ThreadPoolExecutor</th>
+            <th style="padding:4px 8px;text-align:right;border-bottom:1px solid #e5e7eb">CPU %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:#f0fdf4"><td style="padding:3px 8px"><code>aws_py_s3_client_make_meta_request</code> — doing S3 work</td><td style="padding:3px 8px;text-align:right">0.80%</td></tr>
+          <tr><td style="padding:3px 8px"><code>__GI___sched_yield</code> — threads actively yielding CPU</td><td style="padding:3px 8px;text-align:right">1.37%</td></tr>
+          <tr><td style="padding:3px 8px"><code>__GI_madvise</code> — memory management</td><td style="padding:3px 8px;text-align:right">0.26%</td></tr>
+          <tr><td style="padding:3px 8px"><code>__new_sem_wait_slow64</code> — sleeping on semaphore</td><td style="padding:3px 8px;text-align:right">0.17%</td></tr>
+          <tr><td style="padding:3px 8px;color:#888">other small frames (page faults, malloc, interrupts)</td><td style="padding:3px 8px;text-align:right;color:#888">~1.18%</td></tr>
+          <tr style="background:#fffbeb;font-weight:700;border-top:2px solid #e5e7eb">
+            <td style="padding:5px 8px">Active frames total</td><td style="padding:5px 8px;text-align:right"><strong>3.78%</strong></td>
+          </tr>
+          <tr style="background:#fef2f2;font-weight:700">
+            <td style="padding:5px 8px">No frames above (idle/sleeping in kernel)</td><td style="padding:5px 8px;text-align:right"><strong>13.32%</strong></td>
+          </tr>
+          <tr style="font-weight:700;border-top:2px solid #e5e7eb">
+            <td style="padding:5px 8px">Total ThreadPoolExecutor width</td><td style="padding:5px 8px;text-align:right"><strong>17.10%</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right: interpretation -->
+    <div style="font-size:0.85rem;color:#444;line-height:1.75">
+      <p><strong>What this means:</strong></p>
+      <p style="margin-top:0.5rem">
+        Of the 17.10% of CPU time attributed to <code>ThreadPoolExecutor</code> threads,
+        <strong>13.32 percentage points (78% of the pool)</strong> show no active frames —
+        these threads were sampled while sleeping or idle in the kernel, waiting for work.
+      </p>
+      <p style="margin-top:0.75rem">
+        Only <strong>0.80%</strong> of total CPU is threads actually calling
+        <code>aws_py_s3_client_make_meta_request</code> (doing real S3 dispatch work).
+        The pool has capacity — it is not CPU-saturated — yet it still can't keep the CRT
+        event loops fully fed.
+      </p>
+      <p style="margin-top:0.75rem">
+        <strong>Root cause:</strong> The thread pool is under-utilized because the
+        <em>rate</em> of new tasks arriving from the serialization pipeline is the bottleneck,
+        not the number of threads. Even with the GIL removed and a thread pool in place,
+        the upstream coordination (object listing, task scheduling) is not producing work
+        fast enough to keep all threads busy.
+      </p>
+      <p style="margin-top:0.75rem">
+        This is consistent with the Rust TM result (Step 4): even native code at the same
+        concurrency level produces similar throughput. The bottleneck is
+        <strong>coordination throughput</strong>, not language or thread availability.
+      </p>
+      <p style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:#f0fdf4;border-left:3px solid #22c55e;border-radius:0 4px 4px 0">
+        <strong>Is there room for improvement in the Python implementation?</strong><br>
+        Yes — the 13.32% idle CPU is recoverable. Since the threads are sleeping <em>waiting for tasks</em>
+        (not blocked on I/O or the GIL), the fix is to produce tasks faster:
+        increase <code>ListObjects</code> pagination concurrency, pipeline serialization
+        ahead of CRT dispatch, or increase the number of objects being scheduled at once.
+        These are Python-layer architectural changes — no CRT modification needed.
+        Java achieves higher throughput through exactly this mechanism: more concurrent
+        scheduling threads keeping more CRT slots in-flight simultaneously.
+      </p>
+    </div>
+
+  </div>
 </div>
 
 
@@ -748,6 +962,23 @@
   </div>
 
   <div class="card">
+    <span class="badge badge-freethread">perf — cli-crt (free-threading) · Step 3</span>
+    <div class="stats">
+      <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
+      <span class="stat">🚀 <strong>5.18 Gb/s</strong></span>
+      <span class="stat">AwsEventLoop: <strong>69.37%</strong> · 36 threads</span>
+      <span class="stat">Python 3.14t (no GIL)</span>
+    </div>
+    <p class="desc">
+      <code>cli-crt</code> with Python 3.14t free-threading (GIL disabled) and a thread pool
+      for serialization dispatch. Lifts throughput from 3.7 → 5.18 Gb/s (+40%).
+      AwsEventLoop share rises from 62.33% → 69.37% (+7pp). ThreadPoolExecutor threads
+      are present but 78% idle — task production rate is the remaining bottleneck.
+    </p>
+    <a class="card-link" href="cli-freethread-download.html" target="_blank">Open free-threading perf flamegraph</a>
+  </div>
+
+  <div class="card">
     <span class="badge badge-python">py-spy — crt-python · Step 1</span>
     <div class="stats">
       <span class="stat">Tool: <strong>py-spy</strong></span>
@@ -763,7 +994,7 @@
   </div>
 
   <div class="card">
-    <span class="badge badge-cli">perf — cli-crt (default) · Step 2</span>
+    <span class="badge badge-cli">perf — cli-crt · Step 2</span>
     <div class="stats">
       <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
       <span class="stat">🐢 <strong>3.7 Gb/s</strong></span>
@@ -774,38 +1005,38 @@
       call stack. Despite 36 CRT AwsEventLoop threads consuming 62% of CPU, a single
       <code>python3</code> thread in the remaining 38% is the bottleneck.
     </p>
-    <a class="card-link" href="cli-default.html" target="_blank">Open cli-default perf flamegraph</a>
+    <a class="card-link" href="cli-perf-profile.html" target="_blank">Open cli-crt perf flamegraph</a>
   </div>
 
   <div class="card">
-    <span class="badge badge-java">perf — Java TM CRT (default) · Step 2</span>
+    <span class="badge badge-java">perf — Java TM CRT · Step 2</span>
     <div class="stats">
       <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
       <span class="stat">🚀 <strong>8.46 Gb/s</strong></span>
       <span class="stat">AwsEventLoop: <strong>72.29%</strong> · 73 threads</span>
     </div>
     <p class="desc">
-      System-level flamegraph for the Java Transfer Manager (default concurrency=100).
+      System-level flamegraph for the Java Transfer Manager.
       Same <code>ListObjects</code> + scheduling work as <code>cli-crt</code>, but with
       73 CRT AwsEventLoop threads (vs 36 for CLI) and no single-threaded Python bottleneck.
       Delivers 2.3× higher throughput.
     </p>
-    <a class="card-link" href="java-tm-crt-default.html" target="_blank">Open java-tm-crt-default perf flamegraph</a>
+    <a class="card-link" href="java-crt-transfer-manager.html" target="_blank">Open Java TM CRT perf flamegraph</a>
   </div>
 
   <div class="card">
-    <span class="badge badge-freethread">perf — cli-crt (free-threading) · Step 3</span>
+    <span class="badge badge-python" style="background:#dbeafe;color:#1e40af">perf — crt-python (default) · ceiling</span>
     <div class="stats">
       <span class="stat">Tool: <strong>perf record</strong> · 99 Hz</span>
-      <span class="stat">🚀 <strong>5.18 Gb/s</strong></span>
-      <span class="stat">Python 3.14t (no GIL)</span>
+      <span class="stat">🚀 <strong>54.6 Gb/s</strong></span>
+      <span class="stat">AwsEventLoop: <strong>93.97%</strong> · 36 threads</span>
     </div>
     <p class="desc">
-      <code>cli-crt</code> with Python 3.14t free-threading (GIL disabled) and a thread pool
-      for serialization dispatch. Lifts throughput from 3.7 → 5.18 Gb/s (+40%), landing in the
-      same tier as Java TM at default concurrency.
+      System-level flamegraph of <code>crt-python</code>. No <code>ListObjects</code>, no
+      serialization layer — 93.97% of all CPU goes directly to CRT AwsEventLoop threads.
+      This is the theoretical ceiling: nearly all CPU doing useful I/O work.
     </p>
-    <a class="card-link" href="cli-freethread-download.html" target="_blank">Open free-threading perf flamegraph</a>
+    <a class="card-link" href="crt-python-default.html" target="_blank">Open crt-python perf flamegraph</a>
   </div>
 
   <div class="card">
@@ -847,5 +1078,23 @@
   workload: S3 transfer, bucket <code>aws-c-s3-test-bucket-269381</code>
 </footer>
 
+<!-- lightbox overlay -->
+<div class="lb-overlay" id="lb" onclick="this.classList.remove('active')">
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()" />
+</div>
+
+<script>
+  document.querySelectorAll('img').forEach(function(img) {
+    img.classList.add('zoomable');
+    img.addEventListener('click', function() {
+      document.getElementById('lb-img').src = this.src;
+      document.getElementById('lb-img').alt = this.alt;
+      document.getElementById('lb').classList.add('active');
+    });
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('lb').classList.remove('active');
+  });
+</script>
 </body>
 </html>
